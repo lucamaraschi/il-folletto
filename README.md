@@ -26,7 +26,7 @@
 
 ---
 
-**Il-Folletto** (*Italian for "the goblin"*) is a powerful, rule-based file cleaning daemon that keeps your Mac tidy automatically. Define what to clean, when to clean it, and let the goblin do the rest.
+**Il-Folletto** — named after Italy's iconic Vorwerk vacuum cleaner — is a powerful, rule-based file cleaning daemon that keeps your Mac tidy automatically. Define what to clean, when to clean it, and let il Folletto do the rest.
 
 ```
 Downloads eating up space?     → Auto-clean files older than 7 days
@@ -318,7 +318,7 @@ npm run build
 
 ## Why "Il-Folletto"?
 
-In Italian folklore, *folletti* are mischievous household spirits—small, quick, and industrious. They tidy up while you're not looking. This tool embodies that spirit: a helpful daemon that quietly keeps your filesystem clean.
+*Il Folletto* is the iconic Vorwerk vacuum cleaner, a household name in Italy since 1938—famously sold door-to-door and synonymous with keeping homes spotless. This tool carries on that legacy: a tireless cleaning companion for your filesystem.
 
 ## License
 
