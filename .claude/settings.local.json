@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(timeout 3 npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(timeout 2 npm run dev -- tui)",
+      "Bash(open http://localhost:3848)"
+    ]
+  }
+}

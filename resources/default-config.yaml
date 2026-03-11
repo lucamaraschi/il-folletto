@@ -1,0 +1,180 @@
+# il-folletto configuration
+# macOS file cleaning daemon with complex pattern matching
+
+version: 1
+
+global:
+  # If true, only preview changes without actually cleaning
+  dryRun: false
+
+  # Log level: debug, info, warn, error
+  logLevel: info
+
+  # Default action for rules that don't specify one
+  # Options: trash, delete, move, compress
+  defaultAction: trash
+
+  # API server settings (for TUI and Web UI)
+  apiPort: 3847
+  apiHost: "127.0.0.1"
+
+# Scheduled cleanup jobs
+schedules:
+  - name: daily-cleanup
+    enabled: false
+    cron: "0 3 * * *"  # Run at 3 AM daily
+    rules: [cache-cleanup, logs-cleanup]
+
+  - name: weekly-deep-clean
+    enabled: false
+    cron: "0 4 * * 0"  # Run at 4 AM on Sundays
+    rules: [all]
+
+# File watchers - trigger cleanup when thresholds are exceeded
+watchers:
+  - path: ~/Downloads
+    enabled: false
+    threshold: 10GB
+    rules: [downloads-cleanup]
+    debounceMs: 60000
+
+# Cleanup rules
+rules:
+  # Application caches
+  - name: cache-cleanup
+    description: Clean application caches older than 7 days
+    enabled: true
+    action: trash
+    paths:
+      - ~/Library/Caches
+      - ~/.cache
+    patterns:
+      - "**/*"
+    conditions:
+      olderThan: 7d
+    exceptions:
+      - "**/Homebrew/**"
+      - "**/Spotify/**"
+      - "**/com.apple.*/**"
+      - "**/Google/Chrome/**"
+
+  # System and application logs
+  - name: logs-cleanup
+    description: Remove old and large log files
+    enabled: true
+    action: trash
+    paths:
+      - ~/Library/Logs
+    patterns:
+      - "**/*.log"
+      - "**/*.log.*"
+      - "**/DiagnosticReports/**"
+    conditions:
+      olderThan: 30d
+
+  # Large log files (any age)
+  - name: large-logs
+    description: Remove very large log files regardless of age
+    enabled: true
+    action: trash
+    paths:
+      - ~/Library/Logs
+      - /var/log
+    patterns:
+      - "**/*.log"
+    conditions:
+      largerThan: 100MB
+
+  # Development build artifacts
+  - name: dev-artifacts
+    description: Clean old build artifacts from development directories
+    enabled: true
+    action: trash
+    paths:
+      - ~/src
+      - ~/Projects
+      - ~/Developer
+    patterns:
+      - "**/node_modules/**"
+      - "**/target/**"
+      - "**/.build/**"
+      - "**/dist/**"
+      - "**/build/**"
+      - "**/.next/**"
+      - "**/__pycache__/**"
+      - "**/*.pyc"
+      - "**/.pytest_cache/**"
+      - "**/venv/**"
+      - "**/.venv/**"
+    conditions:
+      olderThan: 14d
+    exceptions:
+      # Don't delete from active projects (accessed recently)
+      - "**/node_modules/.bin/**"
+
+  # Old downloads
+  - name: downloads-cleanup
+    description: Clean old installer files and archives from Downloads
+    enabled: true
+    action: trash
+    paths:
+      - ~/Downloads
+    patterns:
+      - "**/*.dmg"
+      - "**/*.pkg"
+      - "**/*.zip"
+      - "**/*.tar.gz"
+      - "**/*.rar"
+      - "**/*.iso"
+    conditions:
+      olderThan: 30d
+
+  # Xcode derived data
+  - name: xcode-cleanup
+    description: Clean Xcode derived data and archives
+    enabled: false
+    action: trash
+    paths:
+      - ~/Library/Developer/Xcode/DerivedData
+      - ~/Library/Developer/Xcode/Archives
+    patterns:
+      - "**/*"
+    conditions:
+      olderThan: 14d
+
+  # iOS device backups
+  - name: ios-backups
+    description: Clean old iOS device backups
+    enabled: false
+    action: trash
+    paths:
+      - ~/Library/Application Support/MobileSync/Backup
+    patterns:
+      - "**/*"
+    conditions:
+      olderThan: 90d
+
+  # Trash (older items)
+  - name: trash-cleanup
+    description: Permanently delete old items from Trash
+    enabled: false
+    action: delete
+    paths:
+      - ~/.Trash
+    patterns:
+      - "**/*"
+    conditions:
+      olderThan: 7d
+
+  # DS_Store and system files
+  - name: ds-store
+    description: Remove .DS_Store files
+    enabled: false
+    action: delete
+    paths:
+      - ~/
+    patterns:
+      - "**/.DS_Store"
+      - "**/._*"
+      - "**/.Spotlight-V100"
+      - "**/.Trashes"
