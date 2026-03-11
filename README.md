@@ -1,30 +1,85 @@
-# Il-Folletto 🧹
+<p align="center">
+  <img src="https://em-content.zobj.net/source/apple/391/broom_1f9f9.png" width="120" alt="Il-Folletto">
+</p>
 
-A powerful macOS file cleaning daemon with complex pattern matching, terminal UI, and web interface.
+<h1 align="center">Il-Folletto</h1>
+
+<p align="center">
+  <strong>The intelligent file cleaning daemon for macOS</strong>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#interfaces">Interfaces</a> •
+  <a href="#api">API</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS-blue?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/node-%3E%3D20-green?style=flat-square" alt="Node">
+  <img src="https://img.shields.io/badge/typescript-5.x-blue?style=flat-square" alt="TypeScript">
+  <img src="https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square" alt="License">
+</p>
+
+---
+
+**Il-Folletto** (*Italian for "the goblin"*) is a powerful, rule-based file cleaning daemon that keeps your Mac tidy automatically. Define what to clean, when to clean it, and let the goblin do the rest.
+
+```
+Downloads eating up space?     → Auto-clean files older than 7 days
+Screenshots cluttering Desktop? → Delete after 24 hours
+Caches growing out of control?  → Purge weekly, keep Homebrew safe
+```
 
 ## Features
 
-- **Rule-based cleaning**: Define rules with glob patterns, regex, and conditions
-- **Scheduled cleanups**: Run cleanups on a schedule using cron expressions
-- **Directory watchers**: Trigger cleanups when directories exceed size thresholds
-- **Multiple actions**: Trash, delete, move, or compress files
-- **Terminal UI**: Interactive terminal interface for monitoring and control
-- **Web UI**: Modern web dashboard for managing cleanups
-- **Daemon mode**: Run as a background service with launchd integration
-- **Dry-run mode**: Preview what would be cleaned before executing
+### Core Capabilities
+
+- **Rule-Based Cleaning** — Define precise rules with glob patterns, regex, and smart conditions
+- **Scheduled Cleanups** — Set it and forget it with cron expressions
+- **Directory Watchers** — Trigger cleanups when folders exceed size thresholds
+- **Safe by Default** — Files go to Trash unless you specify otherwise
+
+### Smart Conditions
+
+| Condition | Example | Description |
+|-----------|---------|-------------|
+| `olderThan` | `7d`, `1h`, `30m` | Files modified more than X ago |
+| `newerThan` | `1d` | Files modified less than X ago |
+| `largerThan` | `100MB`, `1GB` | Files exceeding size |
+| `smallerThan` | `1KB` | Files under size |
+
+### Multiple Actions
+
+| Action | Description |
+|--------|-------------|
+| `trash` | Move to macOS Trash (recoverable) |
+| `delete` | Permanent deletion |
+| `move` | Relocate to another directory |
+| `compress` | Gzip compression |
+
+### Powerful Interfaces
+
+- **CLI** — Full-featured command-line interface
+- **TUI** — Interactive terminal dashboard built with Ink
+- **Web UI** — Modern React dashboard with real-time updates
+- **REST API** — Full HTTP API with WebSocket support
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/il-folletto.git
+git clone https://github.com/lucamaraschi/il-folletto.git
 cd il-folletto
 
 # Install dependencies
 npm install
 cd web && npm install && cd ..
 
-# Build the project
+# Build
 npm run build
 
 # Link globally (optional)
@@ -34,262 +89,36 @@ npm link
 ## Quick Start
 
 ```bash
-# Initialize configuration
+# 1. Initialize configuration
 il-folletto config --init
 
-# Edit your config
-open ~/.config/il-folletto/config.yaml
-
-# Preview what would be cleaned
+# 2. Preview what would be cleaned
 il-folletto dry-run
 
-# Run a cleanup
+# 3. Run cleanup (with confirmation)
 il-folletto clean
 
-# Start the daemon
+# 4. Install as background daemon
 il-folletto daemon install
 il-folletto daemon start
-
-# Launch the TUI
-il-folletto tui
-
-# Launch the Web UI
-il-folletto web
 ```
 
 ## Configuration
 
-The configuration file is located at `~/.config/il-folletto/config.yaml`.
+Configuration lives at `~/.config/il-folletto/config.yaml`
 
-### Basic Structure
+### Example: Keep Downloads Clean
 
 ```yaml
 version: 1
 
 global:
-  dryRun: false          # Global dry-run mode
-  logLevel: info         # debug, info, warn, error
-  defaultAction: trash   # trash, delete, move, compress
-  apiPort: 3847          # API server port
-  apiHost: 127.0.0.1     # API server host
+  dryRun: false
+  defaultAction: trash
 
-rules:
-  - name: cache-cleanup
-    description: Clean application caches
-    enabled: true
-    action: trash
-    paths:
-      - ~/Library/Caches
-    patterns:
-      - "**/*"
-    conditions:
-      olderThan: 7d
-    exceptions:
-      - "**/Homebrew/**"
-
-schedules:
-  - name: hourly-cleanup
-    enabled: true
-    cron: "0 * * * *"
-    rules:
-      - cache-cleanup
-
-watchers:
-  - path: ~/Downloads
-    enabled: true
-    threshold: 10GB
-    rules:
-      - downloads-cleanup
-    debounceMs: 5000
-```
-
-### Rule Options
-
-| Option | Description | Example |
-|--------|-------------|---------|
-| `name` | Unique rule identifier | `cache-cleanup` |
-| `description` | Human-readable description | `Clean old caches` |
-| `enabled` | Whether the rule is active | `true` |
-| `action` | Action to perform | `trash`, `delete`, `move`, `compress` |
-| `moveTo` | Destination for move action | `~/Archive` |
-| `target` | What to match | `files`, `directories`, `all` |
-| `paths` | Directories to scan | `[~/Library/Caches]` |
-| `patterns` | Patterns to match | `["**/*.log", "*.tmp"]` |
-| `conditions` | Conditions for matching | See below |
-| `exceptions` | Patterns to exclude | `["**/important/**"]` |
-
-### Conditions
-
-| Condition | Description | Example |
-|-----------|-------------|---------|
-| `olderThan` | File modified more than duration ago | `7d`, `1h`, `30m` |
-| `newerThan` | File modified less than duration ago | `1d` |
-| `largerThan` | File larger than size | `100MB`, `1GB` |
-| `smallerThan` | File smaller than size | `1KB` |
-| `modifiedBefore` | Modified before date | `2024-01-01T00:00:00Z` |
-| `modifiedAfter` | Modified after date | `2024-01-01T00:00:00Z` |
-
-### Patterns
-
-Il-folletto supports both glob patterns and regex:
-
-```yaml
-patterns:
-  # Glob patterns
-  - "*.log"           # Match .log files
-  - "**/*.tmp"        # Match .tmp files in any subdirectory
-  - "cache-*"         # Match files starting with cache-
-
-  # Regex patterns (enclosed in /)
-  - "/\\.DS_Store$/"  # Match .DS_Store files
-  - "/node_modules/"  # Match paths containing node_modules
-```
-
-## CLI Commands
-
-### Configuration
-
-```bash
-# Show config paths
-il-folletto config
-
-# Initialize with defaults
-il-folletto config --init
-
-# Show config file path
-il-folletto config --path
-
-# Validate configuration
-il-folletto config --validate
-```
-
-### Cleaning
-
-```bash
-# Preview all rules (dry-run)
-il-folletto dry-run
-
-# Preview specific rules
-il-folletto dry-run cache-cleanup downloads-cleanup
-
-# Execute cleanup (with confirmation)
-il-folletto clean
-
-# Execute without confirmation
-il-folletto clean -y
-
-# Execute specific rules
-il-folletto clean cache-cleanup -y
-```
-
-### Rules
-
-```bash
-# List all configured rules
-il-folletto rules
-```
-
-### Daemon
-
-```bash
-# Check daemon status
-il-folletto daemon status
-
-# Install launchd service (auto-start on login)
-il-folletto daemon install
-
-# Uninstall launchd service
-il-folletto daemon uninstall
-
-# Start daemon via launchd
-il-folletto daemon start
-
-# Stop daemon
-il-folletto daemon stop
-
-# Run daemon in foreground (for development)
-il-folletto daemon run
-
-# View daemon logs
-il-folletto daemon logs
-il-folletto daemon logs -n 100
-```
-
-### History & Stats
-
-```bash
-# View cleanup history
-il-folletto history
-il-folletto history -n 50
-
-# View statistics
-il-folletto stats
-```
-
-### User Interfaces
-
-```bash
-# Launch terminal UI
-il-folletto tui
-
-# Launch web UI
-il-folletto web
-
-# Launch web UI on custom port
-il-folletto web -p 8080
-
-# Launch without opening browser
-il-folletto web --no-open
-```
-
-## API
-
-When the daemon is running, it exposes an HTTP API on `localhost:3847`.
-
-### Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/status` | Daemon status |
-| GET | `/api/rules` | List all rules |
-| GET | `/api/rules/:name` | Get single rule |
-| GET | `/api/schedules` | List scheduled jobs |
-| GET | `/api/watchers` | List active watchers |
-| POST | `/api/dry-run` | Preview cleanup |
-| POST | `/api/clean` | Execute cleanup |
-| GET | `/api/history` | Cleanup history |
-| GET | `/api/stats` | Statistics |
-| GET | `/api/config` | Get configuration |
-| PUT | `/api/config` | Update configuration |
-| POST | `/api/config/reload` | Reload from disk |
-| WS | `/ws` | Real-time WebSocket updates |
-
-### Examples
-
-```bash
-# Get daemon status
-curl http://localhost:3847/api/status
-
-# Preview cleanup
-curl -X POST http://localhost:3847/api/dry-run \
-  -H "Content-Type: application/json" \
-  -d '{"rules": ["cache-cleanup"]}'
-
-# Execute cleanup
-curl -X POST http://localhost:3847/api/clean \
-  -H "Content-Type: application/json" \
-  -d '{"rules": ["cache-cleanup"]}'
-```
-
-## Example Configurations
-
-### Clean Old Downloads
-
-```yaml
 rules:
   - name: downloads-cleanup
-    description: Remove old files from Downloads
+    description: Remove old downloads, keep PDFs
     action: trash
     paths:
       - ~/Downloads
@@ -300,14 +129,31 @@ rules:
     exceptions:
       - "**/*.pdf"
       - "**/Important/**"
+
+schedules:
+  - name: daily-cleanup
+    cron: "0 9 * * *"  # Every day at 9 AM
+    rules:
+      - downloads-cleanup
 ```
 
-### Clean Screenshots
+### Example: Auto-Clean When Downloads Exceeds 10GB
+
+```yaml
+watchers:
+  - path: ~/Downloads
+    threshold: 10GB
+    rules:
+      - downloads-cleanup
+    debounceMs: 5000
+```
+
+### Example: Clean Screenshots & Screen Recordings
 
 ```yaml
 rules:
-  - name: screenshots-cleanup
-    description: Delete old screenshots from Desktop
+  - name: screenshots
+    description: Delete old screenshots
     action: delete
     paths:
       - ~/Desktop
@@ -318,116 +164,162 @@ rules:
       olderThan: 3d
 ```
 
-### Compress Old Logs
+### Pattern Matching
 
 ```yaml
-rules:
-  - name: compress-logs
-    description: Compress log files older than 1 day
-    action: compress
-    paths:
-      - ~/Library/Logs
-    patterns:
-      - "**/*.log"
-    conditions:
-      olderThan: 1d
-    exceptions:
-      - "**/*.gz"
+patterns:
+  # Glob patterns
+  - "*.log"           # Match .log files
+  - "**/*.tmp"        # Match .tmp in any subdirectory
+  - "cache-*"         # Match files starting with cache-
+
+  # Regex patterns (enclosed in /)
+  - "/\\.DS_Store$/"  # Match .DS_Store files
+  - "/node_modules/"  # Match paths containing node_modules
 ```
 
-### Clean Large Cache Files
+## Interfaces
 
-```yaml
-rules:
-  - name: large-cache-cleanup
-    description: Remove cache files larger than 100MB
-    action: trash
-    paths:
-      - ~/Library/Caches
-    patterns:
-      - "**/*"
-    conditions:
-      largerThan: 100MB
+### Terminal UI
+
+```bash
+il-folletto tui
 ```
 
-### Hourly Schedule
+Interactive dashboard with keyboard navigation:
+- **Dashboard** — Status, disk usage, cleanup history
+- **Rules** — Browse and inspect configured rules
+- **Cleanup** — Select rules, preview, and execute
 
-```yaml
-schedules:
-  - name: hourly-maintenance
-    cron: "0 * * * *"
-    rules:
-      - cache-cleanup
-      - downloads-cleanup
+### Web UI
+
+```bash
+il-folletto web
 ```
 
-### Daily Schedule
+Modern web dashboard at `http://localhost:3848`:
+- Real-time WebSocket updates
+- Visual disk usage charts
+- One-click cleanup execution
 
-```yaml
-schedules:
-  - name: daily-cleanup
-    cron: "0 3 * * *"  # Run at 3 AM
-    rules:
-      - all  # Run all enabled rules
+### CLI Commands
+
+```bash
+# Configuration
+il-folletto config              # Show config paths
+il-folletto config --init       # Create default config
+il-folletto config --validate   # Validate configuration
+
+# Cleaning
+il-folletto dry-run             # Preview all rules
+il-folletto dry-run <rules...>  # Preview specific rules
+il-folletto clean               # Execute with confirmation
+il-folletto clean -y            # Execute without confirmation
+
+# Rules
+il-folletto rules               # List all rules
+il-folletto add-rule            # Interactive rule wizard
+
+# Daemon
+il-folletto daemon status       # Check daemon status
+il-folletto daemon install      # Install launchd service
+il-folletto daemon start        # Start daemon
+il-folletto daemon stop         # Stop daemon
+il-folletto daemon logs         # View logs
+
+# History
+il-folletto history             # View cleanup history
+il-folletto stats               # View statistics
 ```
 
-### Directory Watcher
+## API
 
-```yaml
-watchers:
-  - path: ~/Downloads
-    threshold: 5GB
-    rules:
-      - downloads-cleanup
-    debounceMs: 10000
+The daemon exposes a REST API on `localhost:3847`:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/status` | Daemon status & uptime |
+| `GET` | `/api/rules` | List all rules |
+| `GET` | `/api/rules/:name` | Get specific rule |
+| `POST` | `/api/dry-run` | Preview cleanup |
+| `POST` | `/api/clean` | Execute cleanup |
+| `GET` | `/api/history` | Cleanup history |
+| `GET` | `/api/stats` | Statistics |
+| `GET` | `/api/disk` | Disk usage |
+| `WS` | `/ws` | Real-time updates |
+
+```bash
+# Preview cleanup via API
+curl -X POST http://localhost:3847/api/dry-run \
+  -H "Content-Type: application/json" \
+  -d '{"rules": ["downloads-cleanup"]}'
 ```
+
+## How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       il-folletto                           │
+├─────────────────────────────────────────────────────────────┤
+│  CLI (commander.js)                                         │
+│  └── config, clean, dry-run, rules, daemon, tui, web       │
+├─────────────────────────────────────────────────────────────┤
+│  Daemon Process                                             │
+│  ├── Scheduler (node-cron)    → Runs rules on schedule     │
+│  ├── Watchers (chokidar)      → Triggers on size threshold │
+│  ├── Rule Engine              → Pattern matching & filters │
+│  ├── Cleaner                  → File operations            │
+│  └── API Server (fastify)     → HTTP + WebSocket           │
+├─────────────────────────────────────────────────────────────┤
+│  Interfaces                                                 │
+│  ├── TUI (ink)                → Terminal dashboard         │
+│  └── Web UI (react + vite)    → Browser dashboard          │
+├─────────────────────────────────────────────────────────────┤
+│  Config: ~/.config/il-folletto/config.yaml                 │
+│  State:  ~/.config/il-folletto/state.json                  │
+│  Logs:   ~/.config/il-folletto/logs/                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Runtime | Node.js 20+ |
+| Language | TypeScript |
+| CLI | Commander.js |
+| TUI | Ink (React for terminals) |
+| Web UI | React + Vite |
+| HTTP Server | Fastify |
+| WebSocket | @fastify/websocket |
+| File Watching | Chokidar |
+| Scheduling | node-cron |
+| Config | cosmiconfig (YAML) |
+| Pattern Matching | fast-glob + micromatch |
+| Validation | Zod |
+| macOS Trash | trash |
+| Testing | Vitest |
 
 ## Development
 
 ```bash
-# Run in development mode
+# Development mode
 npm run dev
-
-# Run TUI in development
-npm run dev tui
-
-# Run web UI in development
-cd web && npm run dev
-
-# Type check
-npm run typecheck
 
 # Run tests
 npm test
 
-# Run tests with coverage
-npm test -- --coverage
+# Type check
+npx tsc --noEmit
+
+# Build
+npm run build
 ```
 
-## File Locations
+## Why "Il-Folletto"?
 
-| File | Location |
-|------|----------|
-| Config | `~/.config/il-folletto/config.yaml` |
-| State | `~/.config/il-folletto/state.json` |
-| Logs | `~/.config/il-folletto/logs/` |
-| Launchd plist | `~/Library/LaunchAgents/com.il-folletto.daemon.plist` |
-
-## Tech Stack
-
-- **Runtime**: Node.js 20+
-- **Language**: TypeScript
-- **CLI**: Commander.js
-- **TUI**: Ink (React for terminals)
-- **Web UI**: React + Vite
-- **HTTP Server**: Fastify + WebSocket
-- **File Watching**: Chokidar
-- **Scheduling**: node-cron
-- **Config**: cosmiconfig (YAML)
-- **Pattern Matching**: fast-glob + micromatch
-- **Validation**: Zod
-- **Trash**: trash (macOS Trash integration)
+In Italian folklore, *folletti* are mischievous household spirits—small, quick, and industrious. They tidy up while you're not looking. This tool embodies that spirit: a helpful daemon that quietly keeps your filesystem clean.
 
 ## License
 
-MIT
+MIT © [Luca Maraschi](https://github.com/lucamaraschi)
