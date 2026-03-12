@@ -18,6 +18,7 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/il-folletto"><img src="https://img.shields.io/npm/v/il-folletto?style=flat-square&color=cb3837" alt="npm"></a>
   <img src="https://img.shields.io/badge/platform-macOS-blue?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/node-%3E%3D20-green?style=flat-square" alt="Node">
   <img src="https://img.shields.io/badge/typescript-5.x-blue?style=flat-square" alt="TypeScript">
@@ -70,19 +71,19 @@ Caches growing out of control?  → Purge weekly, keep Homebrew safe
 
 ## Installation
 
+### Via npm (recommended)
+
 ```bash
-# Clone the repository
+npm install -g il-folletto
+```
+
+### From source
+
+```bash
 git clone https://github.com/lucamaraschi/il-folletto.git
 cd il-folletto
-
-# Install dependencies
-npm install
-cd web && npm install && cd ..
-
-# Build
+npm install && cd web && npm install && cd ..
 npm run build
-
-# Link globally (optional)
 npm link
 ```
 
@@ -204,33 +205,37 @@ Modern web dashboard at `http://localhost:3848`:
 
 ### CLI Commands
 
-```bash
-# Configuration
-il-folletto config              # Show config paths
-il-folletto config --init       # Create default config
-il-folletto config --validate   # Validate configuration
+| Command | Description |
+|---------|-------------|
+| `il-folletto config` | Show config file paths |
+| `il-folletto config --init` | Create default configuration |
+| `il-folletto config --path` | Print config file path |
+| `il-folletto config --validate` | Validate configuration file |
+| `il-folletto rules` | List all configured rules |
+| `il-folletto add-rule` | Interactive rule creation wizard |
+| `il-folletto dry-run [rules...]` | Preview cleanup (no changes) |
+| `il-folletto clean [rules...]` | Execute cleanup with confirmation |
+| `il-folletto clean -y [rules...]` | Execute cleanup without confirmation |
+| `il-folletto history` | Show cleanup history |
+| `il-folletto history -n 50` | Show last 50 history entries |
+| `il-folletto stats` | Show cleanup statistics |
+| `il-folletto tui` | Launch terminal UI |
+| `il-folletto web` | Launch web UI |
+| `il-folletto web -p 8080` | Launch web UI on custom port |
+| `il-folletto web --no-open` | Launch without opening browser |
 
-# Cleaning
-il-folletto dry-run             # Preview all rules
-il-folletto dry-run <rules...>  # Preview specific rules
-il-folletto clean               # Execute with confirmation
-il-folletto clean -y            # Execute without confirmation
+### Daemon Commands
 
-# Rules
-il-folletto rules               # List all rules
-il-folletto add-rule            # Interactive rule wizard
-
-# Daemon
-il-folletto daemon status       # Check daemon status
-il-folletto daemon install      # Install launchd service
-il-folletto daemon start        # Start daemon
-il-folletto daemon stop         # Stop daemon
-il-folletto daemon logs         # View logs
-
-# History
-il-folletto history             # View cleanup history
-il-folletto stats               # View statistics
-```
+| Command | Description |
+|---------|-------------|
+| `il-folletto daemon status` | Show daemon status |
+| `il-folletto daemon install` | Install launchd service (auto-start on login) |
+| `il-folletto daemon uninstall` | Remove launchd service |
+| `il-folletto daemon start` | Start daemon via launchd |
+| `il-folletto daemon stop` | Stop daemon |
+| `il-folletto daemon run` | Run daemon in foreground (for development) |
+| `il-folletto daemon logs` | View daemon logs |
+| `il-folletto daemon logs -n 100` | View last 100 log lines |
 
 ## API
 
@@ -238,19 +243,33 @@ The daemon exposes a REST API on `localhost:3847`:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| `GET` | `/health` | Health check |
 | `GET` | `/api/status` | Daemon status & uptime |
 | `GET` | `/api/rules` | List all rules |
 | `GET` | `/api/rules/:name` | Get specific rule |
+| `GET` | `/api/schedules` | List scheduled jobs |
+| `GET` | `/api/watchers` | List active watchers |
 | `POST` | `/api/dry-run` | Preview cleanup |
 | `POST` | `/api/clean` | Execute cleanup |
 | `GET` | `/api/history` | Cleanup history |
 | `GET` | `/api/stats` | Statistics |
 | `GET` | `/api/disk` | Disk usage |
-| `WS` | `/ws` | Real-time updates |
+| `GET` | `/api/config` | Get configuration |
+| `PUT` | `/api/config` | Update configuration |
+| `POST` | `/api/config/reload` | Reload config from disk |
+| `WS` | `/ws` | Real-time WebSocket updates |
 
 ```bash
-# Preview cleanup via API
+# Health check
+curl http://localhost:3847/health
+
+# Preview cleanup
 curl -X POST http://localhost:3847/api/dry-run \
+  -H "Content-Type: application/json" \
+  -d '{"rules": ["downloads-cleanup"]}'
+
+# Execute cleanup
+curl -X POST http://localhost:3847/api/clean \
   -H "Content-Type: application/json" \
   -d '{"rules": ["downloads-cleanup"]}'
 ```

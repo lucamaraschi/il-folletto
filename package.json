@@ -2,10 +2,25 @@
   "name": "il-folletto",
   "version": "0.1.0",
   "description": "macOS file cleaning daemon with complex pattern matching, TUI, and Web UI",
+  "author": "Luca Maraschi <luca.maraschi@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucamaraschi/il-folletto.git"
+  },
+  "homepage": "https://github.com/lucamaraschi/il-folletto#readme",
+  "bugs": {
+    "url": "https://github.com/lucamaraschi/il-folletto/issues"
+  },
   "type": "module",
   "bin": {
     "il-folletto": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "resources",
+    "web/dist",
+    "README.md"
+  ],
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsup src/index.ts --format esm --dts --clean",
@@ -52,7 +67,14 @@
     "cleanup",
     "daemon",
     "file-management",
-    "tui"
+    "tui",
+    "cli",
+    "trash",
+    "disk-space",
+    "automation",
+    "launchd",
+    "cron",
+    "file-watcher"
   ],
   "license": "MIT"
 }
